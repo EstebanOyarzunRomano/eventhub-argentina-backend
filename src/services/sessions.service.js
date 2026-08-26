@@ -1,5 +1,6 @@
 import usersRepository from "../repositories/users.repository.js";
-import { createHash } from "../utils/hash.js";
+import { createHash, isValidPassword } from "../utils/hash.js";
+import { generateToken } from "../utils/jwt.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -65,6 +66,46 @@ class SessionsService {
       role: newUser.role,
     };
   }
+  async login(credentials) {
+    const { email, password } = credentials;
+
+    // 1. Validar campos obligatorios
+    if (!email || !password) {
+        const error = new Error("Credenciales inválidas");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 2. Normalizar email
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 3. Buscar usuario
+    const user = await usersRepository.findByEmail(normalizedEmail);
+
+    if (!user) {
+        const error = new Error("Credenciales inválidas");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 4. Comparar contraseña
+    const validPassword = await isValidPassword(
+        password,
+        user.password
+    );
+
+    if (!validPassword) {
+        const error = new Error("Credenciales inválidas");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    // 5. Generar JWT
+    const token = generateToken(user);
+
+    return token;
+  }
+
 }
 
 export default new SessionsService();

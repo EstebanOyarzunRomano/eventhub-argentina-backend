@@ -1,30 +1,21 @@
-# Eventhub Argentina
-API REST para la gestión de eventos e inscripciones en Argentina.
+# EventHub Argentina - Backend II
 
-## Descripción
+API REST desarrollada con Node.js, Express, MongoDB y Mongoose para una plataforma de eventos.
 
-EventHub Argentina es una plataforma backend orientada a la publicación y gestión de eventos.
-
-Los organizadores podrán publicar cursos, talleres, conferencias, seminarios, ferias, exposiciones y otros eventos. Los usuarios podrán consultar la información disponible e inscribirse según las fechas y los cupos habilitados.
-
-En esta primera preentrega se implementa la base arquitectónica del proyecto, organizada por capas y preparada para incorporar autenticación, roles, autorización, inscripciones, control de cupos y notificaciones en futuras etapas.
+Actualmente incluye arquitectura en capas, registro seguro de usuarios y autenticación mediante JWT almacenado en cookies HTTP Only.
 
 ## Tecnologías utilizadas
 
 - Node.js
 - Express
-- MongoDB
+- MongoDB Atlas
 - Mongoose
+- bcrypt
+- JSON Web Token
+- cookie-parser
 - dotenv
-- Nodemon
-- JavaScript
-- ES Modules
-- Thunder Client
-- Git y GitHub
 
 ## Instalación
-
-Clonar el repositorio:
 
 ```bash
 git clone https://github.com/EsteanOyarzunRomano/eventhub-argentina-backend.git
