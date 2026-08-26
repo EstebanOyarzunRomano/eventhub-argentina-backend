@@ -22,7 +22,11 @@
     "dotenv": "^17.0.0",
     "express": "^5.0.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.24.4"
+    "mongoose": "^8.24.4",
+    "passport": "^0.7.0",
+    "passport-custom": "^1.2.1",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
