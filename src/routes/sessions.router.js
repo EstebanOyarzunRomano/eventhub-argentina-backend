@@ -1,7 +1,10 @@
-import { Router } from 'express';
-import { getSessionsStatus } from '../controllers/sessions.controller.js';
+import { Router } from "express";
+import sessionsController from "../controllers/sessions.controller.js";
 
 const router = Router();
 
-router.get('/', getSessionsStatus);
+router.post("/register", (req, res) =>
+  sessionsController.register(req, res)
+);
+
 export default router;
