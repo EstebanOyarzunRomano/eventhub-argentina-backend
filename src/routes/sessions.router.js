@@ -2,6 +2,7 @@ import { Router } from "express";
 import passport from "passport";
 
 import sessionsController from "../controllers/sessions.controller.js";
+import authenticate from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.post(
 
 router.get(
   "/current",
-  passportAuthenticate("current"),
+  authenticate,
   (req, res) => sessionsController.current(req, res)
 );
 

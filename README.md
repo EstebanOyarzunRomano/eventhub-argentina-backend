@@ -2,9 +2,9 @@
 
 API REST desarrollada con Node.js, Express, MongoDB y Mongoose para una plataforma de eventos e inscripciones.
 
-Actualmente el proyecto incluye una arquitectura organizada en capas, persistencia en MongoDB, registro seguro de usuarios y autenticación centralizada con Passport.js mediante estrategias de registro, login y usuario actual.
+Actualmente el proyecto incluye una arquitectura organizada en capas, persistencia en MongoDB, registro seguro de usuarios, autenticación centralizada con Passport.js y un sistema de autorización basado en roles.
 
-La autenticación utiliza JSON Web Tokens (JWT) almacenados en una cookie HTTP Only.
+La autenticación utiliza JSON Web Tokens (JWT) almacenados en una cookie HTTP Only. La autorización diferencia los permisos de los roles `user`, `organizer` y `admin`, e incorpora validación de propiedad para los eventos.
 
 ## Tecnologías utilizadas
 
@@ -106,6 +106,13 @@ src/config/passport.config.js
 
 Esto permite mantener las estrategias de Passport separadas de la configuración principal de Express.
 
+La autenticación y autorización de rutas se implementan mediante middlewares reutilizables:
+
+```text
+src/middlewares/auth.middleware.js
+src/middlewares/authorize.middleware.js
+```
+
 ## Autenticación con Passport.js
 
 Passport.js centraliza la autenticación mediante tres estrategias:
@@ -130,6 +137,8 @@ El rol por defecto es:
 ```text
 user
 ```
+
+
 
 ### Estrategia `login`
 
@@ -171,10 +180,79 @@ La respuesta únicamente expone:
   "role": "user"
 }
 ```
-
 La contraseña nunca se incluye en el JWT ni en la respuesta de `/current`.
 
+## Roles y autorización
+
+El sistema implementa tres roles:
+
+- `user`: usuario estándar de la plataforma.
+- `organizer`: usuario autorizado para crear y administrar sus propios eventos.
+- `admin`: usuario con permisos administrativos y capacidad para administrar cualquier evento.
+
+El registro público siempre crea usuarios con rol `user`. El campo `role` enviado desde el body del registro es ignorado, evitando la creación pública de usuarios `organizer` o `admin`.
+
+### Matriz de permisos
+
+| Acción | user | organizer | admin |
+| --- | :---: | :---: | :---: |
+| Consultar eventos publicados | ✅ | ✅ | ✅ |
+| Crear eventos | ❌ | ✅ | ✅ |
+| Modificar eventos propios | ❌ | ✅ | ✅ |
+| Modificar eventos ajenos | ❌ | ❌ | ✅ |
+| Ver todos los usuarios | ❌ | ❌ | ✅ |
+
+### Autenticación y autorización
+
+Las rutas protegidas utilizan dos niveles de control:
+
+1. `authenticate`: verifica que exista una sesión válida y carga los datos del JWT en `req.user`.
+2. `authorize(...roles)`: comprueba que el rol del usuario autenticado se encuentre entre los roles permitidos.
+
+Esto permite mantener la autenticación y la autorización separadas de la definición de las rutas.
+
 ## Rutas
+
+## Diferencia entre 401 y 403
+
+La API diferencia los errores de autenticación y autorización.
+
+### 401 Unauthorized
+
+Se utiliza cuando el cliente no posee una sesión válida.
+
+Ejemplos:
+
+- No existe la cookie `currentUser`.
+- El JWT es inválido.
+- El JWT expiró.
+
+Respuesta:
+
+```json
+{
+  "status": "error",
+  "message": "No autenticado"
+}
+```
+
+### 403 Forbidden
+Se utiliza cuando el usuario está correctamente autenticado, pero su rol o la propiedad del recurso no le permiten realizar la acción solicitada.
+
+Ejemplos:
+
+Un user intenta crear un evento.
+Un organizer intenta acceder a una ruta exclusiva de admin.
+Un organizer intenta modificar el evento de otro organizer.
+
+Respuesta por rol insuficiente:
+
+```json
+{
+  "status": "error",
+  "message": "No tenés permisos para realizar esta acción"
+}
+```
 
 ### Health check
 
@@ -185,6 +263,7 @@ GET /api/health
 Permite comprobar el estado básico de la API.
 
 ### Eventos
+#### Consultar eventos
 
 ```http
 GET /api/events
@@ -192,7 +271,7 @@ GET /api/events
 
 Endpoint base correspondiente al recurso de eventos.
 
-### Registrar usuario
+#### Registrar usuarios
 
 ```http
 POST /api/sessions/register
@@ -209,7 +288,88 @@ Ejemplo de body:
 }
 ```
 
-El rol no debe enviarse desde el cliente.
+#### Crear evento
+```http
+POST /api/events
+```
+
+Requiere autenticación y rol organizer o admin.
+
+
+Ejemplo de body:
+```json
+{
+  "title": "Congreso Tech 2026",
+  "description": "Evento sobre tecnología y desarrollo de software",
+  "category": "Tecnología",
+  "date": "2026-10-15T18:00:00.000Z",
+  "location": "Río Grande, Tierra del Fuego",
+  "capacity": 150
+}
+```
+
+El campo `organizer` no se recibe desde el cliente. Se obtiene automáticamente desde req.user.id.
+
+Una creación exitosa devuelve `201 Created`.
+
+#### Modificar evento
+```http
+PUT /api/events/:eid
+```
+
+Requiere autenticación y rol organizer o admin.
+
+Un organizer solamente puede modificar eventos que le pertenezcan.
+
+Un admin puede modificar cualquier evento.
+
+Si un organizer intenta modificar un evento perteneciente a otro usuario, la API devuelve 403 Forbidden.
+
+```markdown
+### Usuarios - Ruta administrativa
+
+```http
+GET /api/users
+```
+
+Requiere autenticación y rol `admin`.
+
+Permite obtener la lista de usuarios registrados.
+
+Los usuarios con rol `user` u `organizer` no tienen acceso a esta ruta.
+
+La respuesta no incluye las contraseñas ni sus hashes.
+
+Si un usuario autenticado sin rol `admin` intenta acceder:
+
+```json
+{
+  "status": "error",
+  "message": "No tenés permisos para realizar esta acción"
+}
+```
+
+La respuesta utiliza el estado HTTP `403 Forbidden`.
+
+## Propiedad de eventos
+
+Cada evento almacena el identificador del usuario que lo creó mediante el campo `organizer`.
+
+Al crear un evento, el backend obtiene automáticamente el propietario desde el usuario autenticado:
+
+```js
+organizer: req.user.id
+```
+
+Para modificar eventos se aplican las siguientes reglas:
+
+- `organizer`: puede modificar únicamente sus propios eventos.
+- `admin`: puede modificar cualquier evento.
+- `user`: no puede modificar eventos.
+
+Si un `organizer` intenta modificar un evento perteneciente a otro usuario, la API devuelve `403 Forbidden`.
+
+Además, el campo `organizer` no puede modificarse mediante el body de una actualización. El servicio utiliza una lista de campos permitidos para evitar la modificación de propiedades sensibles como `organizer` o `_id`.
 
 ### Iniciar sesión
 
@@ -263,7 +423,7 @@ Si no existe un token válido:
 ```json
 {
   "status": "error",
-  "message": "No autorizado"
+  "message": "No autenticado"
 }
 ```
 
@@ -335,6 +495,13 @@ El sistema implementa las siguientes medidas:
 * Credenciales inválidas utilizan un mensaje genérico.
 * Rutas protegidas rechazan tokens ausentes o inválidos.
 * `.env` y `node_modules` se encuentran excluidos del repositorio.
+* Autenticación mediante middleware reutilizable.
+* Autorización basada en roles.
+* Diferenciación entre errores `401 Unauthorized` y `403 Forbidden`.
+* Validación de propiedad de eventos.
+* Los organizers solamente pueden modificar sus propios eventos.
+* Las rutas administrativas están restringidas al rol `admin`.
+* La ruta administrativa de usuarios excluye el campo `password`.
 
 ## Preparación para providers externos
 
@@ -361,6 +528,14 @@ Antes de la entrega se verificaron los siguientes casos:
 6. Registro con email duplicado devuelve `409`.
 7. Login con credenciales inválidas devuelve `401`.
 8. Acceso a `/current` con JWT inválido o manipulado devuelve `401`.
+9. Acceso a una ruta privada sin cookie devuelve `401`.
+10. Usuario con rol `user` intentando crear un evento devuelve `403`.
+11. Usuario con rol `organizer` puede crear un evento y obtiene `201`.
+12. Usuario con rol `organizer` intentando acceder a la ruta administrativa devuelve `403`.
+13. Usuario con rol `admin` puede acceder a `GET /api/users` y obtiene `200`.
+14. `GET /api/users` no expone el campo `password`.
+15. Organizer intentando modificar un evento ajeno devuelve `403`.
+16. Organizer modificando un evento propio obtiene `200`.
 
 ## Autor
 

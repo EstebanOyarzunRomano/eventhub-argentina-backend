@@ -1,4 +1,4 @@
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 class UsersDAO {
   async findByEmail(email) {
@@ -7,6 +7,10 @@ class UsersDAO {
 
   async create(userData) {
     return User.create(userData);
+  }
+
+  async findAll() {
+    return User.find().select("-password");
   }
 }
 

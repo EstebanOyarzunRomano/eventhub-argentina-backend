@@ -4,8 +4,11 @@ import passport from "passport";
 
 import sessionsRouter from "./routes/sessions.router.js";
 import eventsRouter from "./routes/events.router.js";
+import usersRouter from "./routes/users.router.js";
 
 import initializePassport from "./config/passport.config.js";
+
+import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -20,13 +23,8 @@ app.use(passport.initialize());
 
 app.use("/api/sessions", sessionsRouter);
 app.use("/api/events", eventsRouter);
+app.use("/api/users", usersRouter);
 
-// Middleware global de errores
-app.use((error, req, res, next) => {
-  return res.status(error.statusCode || 500).json({
-    status: "error",
-    message: error.message || "Error interno del servidor",
-  });
-});
+app.use(errorHandler); // Middleware global de errores
 
 export default app;

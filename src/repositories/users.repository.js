@@ -8,6 +8,10 @@ class UsersRepository {
   async createUser(userData) {
     return usersDAO.create(userData);
   }
+
+  async findAll() {
+    return usersDAO.findAll();
+  }
 }
 
 export default new UsersRepository();

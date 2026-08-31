@@ -1,42 +1,55 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema(
-    {
-        title: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        description: {
-            type: String,
-            required: true,
-        },
-        category: {
-            type: String,
-            required: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        location: {
-            type: String,
-            required: true,
-        },
-        capacity: {
-            type: Number,
-            required: true,
-        },
-        status: {
-            type: String,
-            enum: ["disponible", "cacnelado", "terminado"],
-            default: "disponible",
-        },
+const eventSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    {
-        timestamps: true,
-    }
+
+    description: {
+      type: String,
+      required: true,
+    },
+
+    category: {
+      type: String,
+      required: true,
+    },
+
+    date: {
+      type: Date,
+      required: true,
+    },
+
+    location: {
+      type: String,
+      required: true,
+    },
+
+    capacity: {
+      type: Number,
+      required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["disponible", "cancelado", "terminado"],
+      default: "disponible",
+    },
+
+    organizer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
-const Event = mongoose.model('Event', userSchema);
+const Event = mongoose.model("Event", eventSchema);
+
 export default Event;
