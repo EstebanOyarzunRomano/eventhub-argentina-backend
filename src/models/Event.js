@@ -11,11 +11,13 @@ const eventSchema = new mongoose.Schema(
     description: {
       type: String,
       required: true,
+      trim: true,
     },
 
     category: {
       type: String,
       required: true,
+      trim: true,
     },
 
     date: {
@@ -26,17 +28,25 @@ const eventSchema = new mongoose.Schema(
     location: {
       type: String,
       required: true,
+      trim: true,
     },
 
     capacity: {
       type: Number,
       required: true,
+      min: 1,
+    },
+
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
     },
 
     status: {
       type: String,
-      enum: ["disponible", "cancelado", "terminado"],
-      default: "disponible",
+      enum: ["draft", "published", "cancelled", "finished"],
+      default: "draft",
     },
 
     organizer: {

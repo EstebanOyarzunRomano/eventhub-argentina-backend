@@ -1,47 +1,85 @@
 import eventsService from "../services/events.service.js";
 
-export const getEvents = async (req, res, next) => {
-  try {
-    const events = await eventsService.getEvents();
+class EventsController {
+  async getEvents(req, res, next) {
+    try {
+      const result = await eventsService.getEvents(req.query);
 
-    res.status(200).json({
-      status: "success",
-      payload: events,
-    });
-  } catch (error) {
-    next(error);
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-export const createEvent = async (req, res, next) => {
-  try {
-    const event = await eventsService.createEvent(
-      req.body,
-      req.user.id
-    );
+  async getEventById(req, res, next) {
+    try {
+      const event = await eventsService.getEventById(req.params.id);
 
-    res.status(201).json({
-      status: "success",
-      payload: event,
-    });
-  } catch (error) {
-    next(error);
+      res.status(200).json({
+        data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-export const updateEvent = async (req, res, next) => {
-  try {
-    const event = await eventsService.updateEvent(
-      req.params.eid,
-      req.body,
-      req.user
-    );
+  async createEvent(req, res, next) {
+    try {
+      const event = await eventsService.createEvent(
+        req.body,
+        req.user
+      );
 
-    res.status(200).json({
-      status: "success",
-      payload: event,
-    });
-  } catch (error) {
-    next(error);
+      res.status(201).json({
+        message: "Evento creado correctamente",
+        data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-};
+
+  async updateEvent(req, res, next) {
+    try {
+      const event = await eventsService.updateEvent(
+        req.params.id,
+        req.body,
+        req.user
+      );
+
+      res.status(200).json({
+        message: "Evento actualizado correctamente",
+        data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateEventStatus(req, res, next) {
+    try {
+      const { status } = req.body;
+
+      if (!status) {
+        const error = new Error("El estado es obligatorio");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const event = await eventsService.updateEventStatus(
+        req.params.id,
+        status,
+        req.user
+      );
+
+      res.status(200).json({
+        message: "Estado del evento actualizado correctamente",
+        data: event,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new EventsController();
