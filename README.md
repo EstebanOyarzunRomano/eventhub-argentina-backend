@@ -8,18 +8,19 @@ La autenticación utiliza JSON Web Tokens (JWT) almacenados en una cookie HTTP O
 
 ## Tecnologías utilizadas
 
-* Node.js
-* Express
-* MongoDB Atlas
-* Mongoose
-* bcrypt
-* JSON Web Token
-* cookie-parser
-* dotenv
-* Passport.js
-* passport-local
-* passport-jwt
-* passport-custom
+- Node.js
+- Express
+- MongoDB Atlas
+- Mongoose
+- bcrypt
+- JSON Web Token
+- cookie-parser
+- dotenv
+- Passport.js
+- passport-local
+- passport-jwt
+- passport-custom
+- Nodemailer
 
 ## Instalación
 
@@ -81,7 +82,7 @@ El archivo `.env.example` sirve como referencia para configurar las variables ne
 
 ## Arquitectura
 
-El proyecto utiliza una arquitectura organizada por responsabilidades:
+La aplicación está organizada por capas:
 
 ```text
 src/

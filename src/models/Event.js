@@ -5,19 +5,16 @@ const eventSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
-      trim: true,
     },
 
     description: {
       type: String,
       required: true,
-      trim: true,
     },
 
     category: {
       type: String,
       required: true,
-      trim: true,
     },
 
     date: {
@@ -28,7 +25,6 @@ const eventSchema = new mongoose.Schema(
     location: {
       type: String,
       required: true,
-      trim: true,
     },
 
     capacity: {
@@ -39,7 +35,7 @@ const eventSchema = new mongoose.Schema(
 
     price: {
       type: Number,
-      required: true,
+      default: 0,
       min: 0,
     },
 
