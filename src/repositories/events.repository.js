@@ -1,27 +1,18 @@
-import Event from "../models/event.js";
+import eventsDAO from "../dao/events.dao.js";
 
 class EventsRepository {
-  async create(eventData) {
-    return await Event.create(eventData);
+  async createEvent(eventData) {
+    return eventsDAO.create(eventData);
   }
 
   async findById(eventId) {
-    return await Event.findById(eventId);
+    return eventsDAO.findById(eventId);
   }
 
-  async findAll(filters, options) {
-    const { page, limit, sort } = options;
-
-    const skip = (page - 1) * limit;
-
+  async findPublishedEvents(filters, options) {
     const [events, total] = await Promise.all([
-      Event.find(filters)
-        .sort(sort)
-        .skip(skip)
-        .limit(limit)
-        .populate("organizer", "first_name last_name email role"),
-
-      Event.countDocuments(filters),
+      eventsDAO.find(filters, options),
+      eventsDAO.count(filters),
     ]);
 
     return {
@@ -30,11 +21,8 @@ class EventsRepository {
     };
   }
 
-  async update(eventId, eventData) {
-    return await Event.findByIdAndUpdate(eventId, eventData, {
-      new: true,
-      runValidators: true,
-    });
+  async updateEvent(eventId, eventData) {
+    return eventsDAO.update(eventId, eventData);
   }
 }
 

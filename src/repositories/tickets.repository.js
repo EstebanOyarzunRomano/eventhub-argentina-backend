@@ -1,17 +1,26 @@
-import Ticket from "../models/ticket.js";
+import ticketsDAO from "../dao/tickets.dao.js";
 
 class TicketsRepository {
-  async create(ticketData) {
-    return await Ticket.create(ticketData);
+  async createTicket(ticketData) {
+    return ticketsDAO.create(ticketData);
   }
 
   async findById(ticketId) {
-    return await Ticket.findById(ticketId);
+    return ticketsDAO.findById(ticketId);
   }
 
   async findActiveByUserAndEvent(userId, eventId) {
-    return await Ticket.findOne({
+    return ticketsDAO.findOne({
       user: userId,
+      event: eventId,
+      status: {
+        $in: ["confirmed", "pending"],
+      },
+    });
+  }
+
+  async countActiveTickets(eventId) {
+    return ticketsDAO.count({
       event: eventId,
       status: {
         $in: ["confirmed", "pending"],
@@ -20,7 +29,7 @@ class TicketsRepository {
   }
 
   async getActiveTicketsByEvent(eventId) {
-    return await Ticket.find({
+    return ticketsDAO.find({
       event: eventId,
       status: {
         $in: ["confirmed", "pending"],
@@ -29,23 +38,51 @@ class TicketsRepository {
   }
 
   async getMyTickets(userId) {
-    return await Ticket.find({
-      user: userId,
-    })
-      .populate("event", "title date location")
-      .sort({ createdAt: -1 });
+    return ticketsDAO.find(
+      {
+        user: userId,
+      },
+      {
+        populate: [
+          {
+            path: "event",
+            select: "title date location",
+          },
+        ],
+        sort: {
+          createdAt: -1,
+        },
+      }
+    );
   }
 
   async getTicketsByEvent(eventId) {
-    return await Ticket.find({
-      event: eventId,
-    })
-      .populate("user", "first_name last_name email")
-      .sort({ createdAt: -1 });
+    return ticketsDAO.find(
+      {
+        event: eventId,
+      },
+      {
+        populate: [
+          {
+            path: "user",
+            select: "first_name last_name email",
+          },
+        ],
+        sort: {
+          createdAt: -1,
+        },
+      }
+    );
   }
 
-  async save(ticket) {
-    return await ticket.save();
+  async cancelTicket(ticketId) {
+    return ticketsDAO.update(ticketId, {
+      status: "cancelled",
+    });
+  }
+
+  async saveTicket(ticket) {
+    return ticketsDAO.save(ticket);
   }
 }
 

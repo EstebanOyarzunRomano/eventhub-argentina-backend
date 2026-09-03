@@ -1,8 +1,12 @@
 import User from "../models/user.js";
 
 class UsersDAO {
-  async findByEmail(email) {
-    return User.findOne({ email });
+  async findById(id) {
+    return User.findById(id);
+  }
+
+  async findOne(filter) {
+    return User.findOne(filter);
   }
 
   async create(userData) {
@@ -10,7 +14,13 @@ class UsersDAO {
   }
 
   async findAll() {
-    return User.find().select("-password");
+    return User.find();
+  }
+
+  async update(id, userData) {
+    return User.findByIdAndUpdate(id, userData, {
+      new: true,
+    });
   }
 }
 

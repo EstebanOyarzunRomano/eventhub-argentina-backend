@@ -88,13 +88,14 @@ class EventsService {
       throw error;
     }
 
-    const { events, total } = await eventsRepository.findAll(filters, {
-      page: parsedPage,
-      limit: parsedLimit,
-      sort: {
-        [sortField]: sortOrder,
-      },
-    });
+    const { events, total } = 
+      await eventsRepository.findPublishedEvents(filters, {
+        page: parsedPage,
+        limit: parsedLimit,
+        sort: {
+          [sortField]: sortOrder,
+        },
+      });
 
     return {
       data: events,
@@ -182,7 +183,7 @@ class EventsService {
       throw error;
     }
 
-    return await eventsRepository.create({
+    return await eventsRepository.createEvent({
       title,
       description,
       category,
@@ -272,11 +273,17 @@ class EventsService {
       eventData.price = Number(eventData.price);
     }
 
-    return await eventsRepository.update(eventId, eventData);
+    return await eventsRepository.updateEvent(eventId, eventData);
   }
 
   async updateEventStatus(eventId, newStatus, user) {
     const event = await eventsRepository.findById(eventId);
+
+    if (!newStatus) {
+      const error = new Error("El estado es obligatorio");
+      error.statusCode = 400;
+      throw error;
+    }
 
     if (!event) {
       const error = new Error("Evento no encontrado");
@@ -327,7 +334,7 @@ class EventsService {
       throw error;
     }
 
-    return await eventsRepository.update(eventId, {
+    return await eventsRepository.updateEvent(eventId, {
       status: newStatus,
     });
   }

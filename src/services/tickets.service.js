@@ -1,13 +1,13 @@
 import crypto from "crypto";
-import Event from "../models/event.js";
-import User from "../models/user.js";
 import ticketsRepository from "../repositories/tickets.repository.js";
+import eventsRepository from "../repositories/events.repository.js";
+import usersRepository from "../repositories/users.repository.js";
 import mailService from "./mail.service.js";
 
 class TicketsService {
   async createTicket(eventId, userId, quantity) {
     // 1. Validar que el evento exista
-    const event = await Event.findById(eventId);
+    const event = await eventsRepository.findById(eventId);
 
     if (!event) {
       const error = new Error("Evento no encontrado");
@@ -15,7 +15,7 @@ class TicketsService {
       throw error;
     }
 
-    // 2. Validar que esté publicado
+    // 2. Validar estado
     if (event.status !== "published") {
       if (event.status === "cancelled") {
         const error = new Error(
@@ -33,9 +33,7 @@ class TicketsService {
         throw error;
       }
 
-      const error = new Error(
-        "El evento no está publicado"
-      );
+      const error = new Error("El evento no está publicado");
       error.statusCode = 400;
       throw error;
     }
@@ -49,7 +47,7 @@ class TicketsService {
       throw error;
     }
 
-    // 4. Validar quantity
+    // 4. Validar cantidad
     if (!Number.isInteger(quantity) || quantity <= 0) {
       const error = new Error(
         "La cantidad debe ser un número entero mayor a 0"
@@ -58,7 +56,7 @@ class TicketsService {
       throw error;
     }
 
-    // 5. Validar inscripción duplicada activa
+    // 5. Validar inscripción duplicada
     const existingTicket =
       await ticketsRepository.findActiveByUserAndEvent(
         userId,
@@ -86,7 +84,7 @@ class TicketsService {
     const availableCapacity =
       event.capacity - occupiedCapacity;
 
-    // 8. Validar cupos
+    // 8. Validar cupos disponibles
     if (availableCapacity < quantity) {
       const error = new Error(
         `No hay cupos suficientes. Cupos disponibles: ${availableCapacity}`
@@ -99,7 +97,7 @@ class TicketsService {
     const reservationCode = crypto.randomUUID();
 
     // 10. Crear ticket
-    const ticket = await ticketsRepository.create({
+    const ticket = await ticketsRepository.createTicket({
       user: userId,
       event: eventId,
       status: "confirmed",
@@ -107,8 +105,8 @@ class TicketsService {
       reservationCode,
     });
 
-    // 11. Obtener usuario
-    const user = await User.findById(userId);
+    // 11. Obtener usuario mediante Repository
+    const user = await usersRepository.findById(userId);
 
     // 12. Enviar email
     if (user) {
@@ -130,11 +128,11 @@ class TicketsService {
   }
 
   async getMyTickets(userId) {
-    return await ticketsRepository.getMyTickets(userId);
+    return ticketsRepository.getMyTickets(userId);
   }
 
   async getTicketsByEvent(eventId, user) {
-    const event = await Event.findById(eventId);
+    const event = await eventsRepository.findById(eventId);
 
     if (!event) {
       const error = new Error("Evento no encontrado");
@@ -143,14 +141,14 @@ class TicketsService {
     }
 
     if (user.role === "admin") {
-      return await ticketsRepository.getTicketsByEvent(eventId);
+      return ticketsRepository.getTicketsByEvent(eventId);
     }
 
     if (
       user.role === "organizer" &&
       event.organizer.toString() === user.id.toString()
     ) {
-      return await ticketsRepository.getTicketsByEvent(eventId);
+      return ticketsRepository.getTicketsByEvent(eventId);
     }
 
     const error = new Error(
@@ -161,8 +159,7 @@ class TicketsService {
   }
 
   async cancelTicket(ticketId, user) {
-    const ticket =
-      await ticketsRepository.findById(ticketId);
+    const ticket = await ticketsRepository.findById(ticketId);
 
     if (!ticket) {
       const error = new Error("Ticket no encontrado");
@@ -195,7 +192,7 @@ class TicketsService {
     ticket.status = "cancelled";
     ticket.cancelledAt = new Date();
 
-    await ticketsRepository.save(ticket);
+    await ticketsRepository.saveTicket(ticket);
 
     return ticket;
   }

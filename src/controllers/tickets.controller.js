@@ -1,7 +1,8 @@
 import ticketsService from "../services/tickets.service.js";
+import TicketDTO from "../dto/ticket.dto.js";
 
 class TicketsController {
-  async createTicket(req, res) {
+  async createTicket(req, res, next) {
     try {
       const { eid } = req.params;
       const { quantity } = req.body;
@@ -15,54 +16,52 @@ class TicketsController {
       res.status(201).json({
         status: "success",
         message: "Inscripción realizada correctamente",
-        payload: ticket,
+        payload: new TicketDTO(ticket),
       });
     } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: "error",
-        message: error.message,
-      });
+      next(error);
     }
   }
 
-  async getMyTickets(req, res) {
+  async getMyTickets(req, res, next) {
     try {
-      const tickets = await ticketsService.getMyTickets(req.user.id);
-
-      res.status(200).json({
-        status: "success",
-        payload: tickets,
-      });
-    } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: "error",
-        message: error.message,
-      });
-    }
-  }
-
-  async getTicketsByEvent(req, res) {
-    try {
-      const { eid } = req.params;
-
-      const tickets = await ticketsService.getTicketsByEvent(
-        eid,
-        req.user
+      const tickets = await ticketsService.getMyTickets(
+        req.user.id
       );
 
       res.status(200).json({
         status: "success",
-        payload: tickets,
+        payload: tickets.map(
+          (ticket) => new TicketDTO(ticket)
+        ),
       });
     } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: "error",
-        message: error.message,
-      });
+      next(error);
     }
   }
 
-  async cancelTicket(req, res) {
+  async getTicketsByEvent(req, res, next) {
+    try {
+      const { eid } = req.params;
+
+      const tickets =
+        await ticketsService.getTicketsByEvent(
+          eid,
+          req.user
+        );
+
+      res.status(200).json({
+        status: "success",
+        payload: tickets.map(
+          (ticket) => new TicketDTO(ticket)
+        ),
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async cancelTicket(req, res, next) {
     try {
       const { tid } = req.params;
 
@@ -74,13 +73,10 @@ class TicketsController {
       res.status(200).json({
         status: "success",
         message: "Ticket cancelado correctamente",
-        payload: ticket,
+        payload: new TicketDTO(ticket),
       });
     } catch (error) {
-      res.status(error.statusCode || 500).json({
-        status: "error",
-        message: error.message,
-      });
+      next(error);
     }
   }
 }

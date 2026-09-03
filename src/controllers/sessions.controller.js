@@ -1,10 +1,13 @@
 import { generateToken } from "../utils/jwt.js";
+import UserDTO from "../dto/user.dto.js";
 
 class SessionsController {
   async register(req, res) {
+    const userDTO = new UserDTO(req.user);
+    
     return res.status(201).json({
       status: "success",
-      payload: req.user,
+      payload: userDTO,
     });
   }
 
@@ -34,13 +37,11 @@ class SessionsController {
   }
 
   current(req, res) {
+    const userDTO = new UserDTO(req.user);
+    
     return res.status(200).json({
       status: "success",
-      payload: {
-        id: req.user.id,
-        email: req.user.email,
-        role: req.user.role,
-      },
+      payload: userDTO,
     });
   }
 
