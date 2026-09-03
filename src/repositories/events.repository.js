@@ -9,7 +9,7 @@ class EventsRepository {
     return eventsDAO.findById(eventId);
   }
 
-  async findPublishedEvents(filters, options) {
+  async findEvents(filters, options) {
     const [events, total] = await Promise.all([
       eventsDAO.find(filters, options),
       eventsDAO.count(filters),

@@ -89,7 +89,7 @@ class EventsService {
     }
 
     const { events, total } = 
-      await eventsRepository.findPublishedEvents(filters, {
+      await eventsRepository.findEvents(filters, {
         page: parsedPage,
         limit: parsedLimit,
         sort: {

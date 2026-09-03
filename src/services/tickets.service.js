@@ -89,7 +89,7 @@ class TicketsService {
       const error = new Error(
         `No hay cupos suficientes. Cupos disponibles: ${availableCapacity}`
       );
-      error.statusCode = 400;
+      error.statusCode = 409;
       throw error;
     }
 
@@ -100,7 +100,7 @@ class TicketsService {
     const ticket = await ticketsRepository.createTicket({
       user: userId,
       event: eventId,
-      status: "confirmed",
+      status: "active",
       quantity,
       reservationCode,
     });

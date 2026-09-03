@@ -13,27 +13,21 @@ class TicketsRepository {
     return ticketsDAO.findOne({
       user: userId,
       event: eventId,
-      status: {
-        $in: ["confirmed", "pending"],
-      },
+      status: "active",
     });
   }
 
   async countActiveTickets(eventId) {
     return ticketsDAO.count({
       event: eventId,
-      status: {
-        $in: ["confirmed", "pending"],
-      },
+      status: "active",
     });
   }
 
   async getActiveTicketsByEvent(eventId) {
     return ticketsDAO.find({
       event: eventId,
-      status: {
-        $in: ["confirmed", "pending"],
-      },
+      status: "active",
     });
   }
 

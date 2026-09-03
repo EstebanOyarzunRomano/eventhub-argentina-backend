@@ -9,31 +9,31 @@ class TicketDTO {
     this.updatedAt = ticket.updatedAt;
 
     if (ticket.event) {
-      if (typeof ticket.event === "object") {
+      // Evento populado
+      if (ticket.event.title !== undefined) {
         this.event = {
-          id:
-            ticket.event._id?.toString() ||
-            ticket.event.id,
+          id: ticket.event._id?.toString() || ticket.event.id,
           title: ticket.event.title,
           date: ticket.event.date,
           location: ticket.event.location,
         };
       } else {
+        // Solo ObjectId
         this.event = ticket.event.toString();
       }
     }
 
     if (ticket.user) {
-      if (typeof ticket.user === "object") {
+      // Usuario populado
+      if (ticket.user.email !== undefined) {
         this.user = {
-          id:
-            ticket.user._id?.toString() ||
-            ticket.user.id,
+          id: ticket.user._id?.toString() || ticket.user.id,
           first_name: ticket.user.first_name,
           last_name: ticket.user.last_name,
           email: ticket.user.email,
         };
       } else {
+        // Solo ObjectId
         this.user = ticket.user.toString();
       }
     }

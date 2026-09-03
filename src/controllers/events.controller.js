@@ -10,9 +10,13 @@ class EventsController {
         (event) => new EventDTO(event)
       );
 
-      res.status(200).json({
-        ...result,
+      return res.status(200).json({
+        status: "success",
         data: eventsDTO,
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages,
       });
     } catch (error) {
       next(error);
@@ -25,7 +29,8 @@ class EventsController {
         req.params.id
       );
 
-      res.status(200).json({
+      return res.status(200).json({
+        status: "success",
         data: new EventDTO(event),
       });
     } catch (error) {
@@ -40,7 +45,8 @@ class EventsController {
         req.user
       );
 
-      res.status(201).json({
+      return res.status(201).json({
+        status: "success",
         message: "Evento creado correctamente",
         data: new EventDTO(event),
       });
@@ -57,7 +63,8 @@ class EventsController {
         req.user
       );
 
-      res.status(200).json({
+      return res.status(200).json({
+        status: "success",
         message: "Evento actualizado correctamente",
         data: new EventDTO(event),
       });
@@ -74,7 +81,8 @@ class EventsController {
         req.user
       );
 
-      res.status(200).json({
+      return res.status(200).json({
+        status: "success",
         message: "Estado del evento actualizado correctamente",
         data: new EventDTO(event),
       });
